@@ -1,4 +1,11 @@
 trigger:
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'Azure subscription 1(824afe03-fb16-40e3-b06c-ece467b78076)'
+    appType: 'webAppLinux'
+    WebAppName: 'reshapp'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
 - main
 - master
 - develop

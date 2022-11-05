@@ -74,6 +74,28 @@ stages:
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: $(artifaceName)
 
+
+- stage: 'Deploy test'
+  displayName: 'Deploy to test'
+  # condition: and(succeeded(), eq(variables.isMain, 'true'))
+  variables: 
+    appName: 'reshtest'
+  jobs:
+  - deployment: 'test'
+     
+    environment: 'test'
+    strategy: 
+       runOnce:     
+        deploy:
+          steps:
+          - task: AzureRmWebAppDeployment@4
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'Azure subscription 1(824afe03-fb16-40e3-b06c-ece467b78076)'
+              appType: 'webAppLinux'
+              WebAppName: $(appName)
+              packageForLinux: '$(Pipeline.Workspace)/$(artifaceName)/$(buildConfiguration)/*.zip'
+
 - stage: 'DeployDev'
   displayName: 'Deploy to Dev'
   # condition: and(succeeded(), eq(variables.isMain, 'true'))
@@ -83,6 +105,27 @@ stages:
   - deployment: 'Dev'
      
     environment: 'Dev'
+    strategy: 
+       runOnce:     
+        deploy:
+          steps:
+          - task: AzureRmWebAppDeployment@4
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'Azure subscription 1(824afe03-fb16-40e3-b06c-ece467b78076)'
+              appType: 'webAppLinux'
+              WebAppName: $(appName)
+              packageForLinux: '$(Pipeline.Workspace)/$(artifaceName)/$(buildConfiguration)/*.zip'
+
+- stage: 'Deployprod'
+  displayName: 'Deploy to production'
+  # condition: and(succeeded(), eq(variables.isMain, 'true'))
+  variables: 
+    appName: 'reshprod'
+  jobs:
+  - deployment: 'prod'
+     
+    environment: 'prod'
     strategy: 
        runOnce:     
         deploy:

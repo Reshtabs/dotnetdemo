@@ -8,17 +8,6 @@ trigger:
 - feature/*
 - master
 
-pool:
-  name: 'Demo'
-
-variables:
-  buildConfiguration: 'Release'
-  dotNetFramework: 'net6.0'
-  repository: 'walmartpayment'
-  namespace: 'walmartdev'
-  k8sconnection: 'kubewalmartdev'
-  imagePullSecret: 'test'
-
 stages:
 - stage: 'Build'
   jobs:
@@ -26,8 +15,8 @@ stages:
     steps:
       - task: Docker@2
         inputs:
-          containerRegistry: 'ACRDocker'
-          repository: '$(repository)'
+          containerRegistry: 'rtechshared1'
+          repository: 'dotnetdemo'
           command: 'buildAndPush'
           Dockerfile: '**/Dockerfile'
           tags: |

@@ -15,11 +15,9 @@ stages:
     steps:
       - task: Docker@2
         inputs:
-          containerRegistry: 'rtechshared1'
-          repository: 'dotnetdemo'
+          containerRegistry: 'rtechshared'
+          repository: 'dotnetdemo(3)'
           command: 'buildAndPush'
           Dockerfile: '**/Dockerfile'
-          tags: |
-            latest
-            $(Build.BuildNumber)
+          
 

@@ -10,6 +10,7 @@ pool:
 variables:
   buildConfiguration: 'Release'
   isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+
 stages:
 - stage: 'Build'
   displayName: 'Build the web application'

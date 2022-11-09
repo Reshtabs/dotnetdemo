@@ -8,19 +8,20 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
- buildConfiguration:'Release'
- isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  buildConfiguration: 'Release'
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 stages:
-- stage:'Build'
+- stage: 'Build'
+  displayName: 'Build the web application'
   jobs:
-  - job: 'Build'
-    steps:
+  - job: 'Buildclient'
+ displayname: 'Build job'
+
+  steps:
       - task: Docker@2
         inputs:
           containerRegistry: 'ACRDocker'
-          repository: '$(repository)'
+          repository: 'dotnetdemo-1'
           command: 'buildAndPush'
           Dockerfile: '**/Dockerfile'
-          tags: |
-            latest
-            $(Build.BuildNumber)
+       

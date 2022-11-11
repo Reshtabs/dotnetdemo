@@ -1,82 +1,60 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
-trigger:
-- develop
-- feature/*
-- master
-
-pool:
-  name: 'Demo'
-
-variables:
-  buildConfiguration: 'Release'
-  dotNetFramework: 'net6.0'
-  repository: 'walmartpayment'
-  namespace: 'walmartdev'
-  k8sconnection: 'kubewalmartdev'
-  imagePullSecret: 'test'
-
-stages:
-- stage: 'Build'
-  jobs:
-  - job: 'Build'
-    steps:
-      - task: Docker@2
-        inputs:
-          containerRegistry: 'ACRDockerrt'
-          repository: '$(repository)'
-          command: 'buildAndPush'
-          Dockerfile: '**/Dockerfile'
-          tags: |
-            latest
-            $(Build.BuildNumber)
-
-      - task: PublishPipelineArtifact@1
-        inputs:
-          artifactName: 'manifests'
-          path: 'manifests'
-
-- stage: 'Deploy'
-  displayName: 'Deployment to Dev'
-  jobs:
-  - deployment: Deploy
-    displayName: Deploy to AKS
-    pool:
-      name: 'Demo'   
-    environment: 'Dev'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-           - task: DownloadPipelineArtifact@2
-             displayName: 'Download Manifests'
-             inputs:
-                artifactName: 'manifests'
-                downloadPath: '$(System.ArtifactsDirectory)/manifests'
-
-           - task: KubernetesManifest@0
-             displayName: Create imagePullSecret
-             inputs:
-                kubernetesServiceConnection: $(rtech)
-                action: createSecret
-                secretName: $(imagePullSecret)
-                namespace: $(namespace)
-                dockerRegistryEndpoint: 'ACRDockerrt'
-              
-           - task: KubernetesManifest@0
-             displayName: Deploy
-             inputs:
-              kubernetesServiceConnection: $(rtech)
-              action: deploy
-              namespace: $(namespace)
-              manifests: |
-                $(System.ArtifactsDirectory)/manifests/deployment.yaml
-                $(System.ArtifactsDirectory)/manifests/Service.yaml
-                $(System.ArtifactsDirectory)/manifests/Ingress.yaml
-              imagePullSecrets: |
-                $(imagePullSecret)
-              arguments: '-n=walmartdev'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  walmartpayment-dev
+  namespace: walmartdev
+  labels:
+    app:  walmartpayment-dev
+spec:
+  selector:
+    matchLabels:
+      app: walmartpayment-dev
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  walmartpayment-dev
+    spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name:  walmartpayment-dev
+        image:  azacrshared.azurecr.io/walmartpayment:latest
+        resources:
+          requests:
+            cpu:  100m
+            memory: 300Mi
+          limits:
+            cpu: 200m
+            memory: 300Mi
+        livenessProbe:
+          exec:
+            command:
+            - ls
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - ls
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        ports:
+        - containerPort:  80
+          name:  walmartdev
+        imagePullPolicy: Always
+      restartPolicy: Always
   

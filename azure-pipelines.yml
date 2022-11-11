@@ -26,14 +26,13 @@ stages:
     steps:
       - task: Docker@2
         inputs:
-          containerRegistry: 'ACRDockerrt'
+          containerRegistry: 'ACRDocker'
           repository: '$(repository)'
           command: 'buildAndPush'
           Dockerfile: '**/Dockerfile'
           tags: |
             latest
             $(Build.BuildNumber)
-
       - task: PublishPipelineArtifact@1
         inputs:
           artifactName: 'manifests'
@@ -60,16 +59,16 @@ stages:
            - task: KubernetesManifest@0
              displayName: Create imagePullSecret
              inputs:
-                kubernetesServiceConnection: $(rtech)
+                kubernetesServiceConnection: $(k8sconnection)
                 action: createSecret
                 secretName: $(imagePullSecret)
                 namespace: $(namespace)
-                dockerRegistryEndpoint: 'ACRDockerrt'
+                dockerRegistryEndpoint: 'ACRDocker'
               
            - task: KubernetesManifest@0
              displayName: Deploy
              inputs:
-              kubernetesServiceConnection: $(rtech)
+              kubernetesServiceConnection: $(k8sconnection)
               action: deploy
               namespace: $(namespace)
               manifests: |

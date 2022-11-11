@@ -1,11 +1,11 @@
-apiVersion: apps/v1
+ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name:  walmartpayment-dev
   namespace: walmartdev
   labels:
     app:  walmartpayment-dev
-spec:
+  spec:
   selector:
     matchLabels:
       app: walmartpayment-dev
